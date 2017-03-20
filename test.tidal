@@ -1,0 +1,57 @@
+cps (40/120)
+
+d1
+$ density 1
+$ s "[hop]*6"
+|=| n "[0 2]/2"
+|=| beginend (scale 0 0.8 $ slow 32 $ sine1) "0.2"
+|=| release (scale 0.1 0.5 $ slow 64 $ sine1)
+|=| attack (scale 0.4 1 $ slow 16 $ sine1)
+|=| pan "0.2 0.5 0.8"
+|=| speed "[-1, 0.5] 1 -1 [1, -0.5]"
+
+d1
+$ every 6 (|=| speed "[-1, -0.5]")
+$ density 4
+$ s "hop*6"
+|=| n "[2, 1] [3, 0]"
+|=| beginend (scale 0 0.8 $ slow 12 $ sine1) "0.2"
+|=| release (scale 0.1 0.5 $ slow 64 $ sine1)
+|=| attack (scale 0 0.1 $ slow 32 $ sine1)
+|=| pan "0.2 0.5 0.8"
+|=| speed "[-2, 0.5] 1 -1 [2, -0.5]"
+
+
+d2 $ stack [
+  s "[hc hc hc hc hc [hc [hc ~ hc hc*2]]/2]*2" # n "3" # gain "0.4",
+  s "t3*6" # n "3",
+  s "[t5 ~ ~ [t5 ~ t5]]*2" # n "2" # gain "1.3" # pan "0.2 0.9" # speed "0.5",
+  s "[~ t5 ~ [~ t5 ~]]*2" # n "4" # gain "1.0" # pan "0.2 0.9" # speed "0.5"
+]
+
+p2 $ density 2 $ word "words to sequence music to sequence" # color "[0 1 2 3]/4"
+
+p1 $ density 1 $ word "holy shit im tripping balls help" # slot "word2" # color "0 1 2 3"
+
+
+p1 $ stack [
+word "[[hi hello bye]/3 _ [friend enemy dear family]/4 _]*3"
+  |=| color "0 1 2 3" |=| slot "word1",
+((1/4) <~) $ word "[[hi hello bye]/3 _ [friend enemy dear family]/4 _]*3"
+  |=| color "0 1 2 3"
+  |=| slot "word2"
+]
+
+p2
+$ word "[[hi hello bye]/3 _ [friend enemy dear family]/4 _]*3"
+|=| color "0 1 2 3"
+|=| slot "word2"
+
+
+d2 $ silence
+
+hush
+
+p1
+$ slow 4
+$ word "lol _ [l o l] _ [lmao] _ [l m a o] _"
