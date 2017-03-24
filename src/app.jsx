@@ -3,7 +3,9 @@ import osc from "osc";
 import EventEmitter from "events";
 
 const sketches = {
-  A: require("./sketches/A").default
+  A: require("./sketches/A").default,
+  B: require("./sketches/B").default,
+  C: require("./sketches/C").default
 };
 
 export default class App extends React.Component {
@@ -11,7 +13,7 @@ export default class App extends React.Component {
     super();
 
     this.state = {
-      activeSketch: "A"
+      activeSketch: "C"
     };
 
     // Create an osc.js UDP Port listening on port 57121.
@@ -22,18 +24,21 @@ export default class App extends React.Component {
     });
     this.udpPort = udpPort;
 
-    this.emitter = new EventEmitter();
-
     // Listen for incoming OSC bundles.
     udpPort.on("message", ({ args }) => {
+      const event = {};
       for (let i = 0; i < args.length / 2; i++) {
         event[args[i * 2].value] = args[i * 2 + 1].value;
       }
+
+      // console.log(event);
 
       this.emitter.emit("event", event);
     });
 
     udpPort.open();
+
+    this.emitter = new EventEmitter();
   }
 
   componentWillUnmount() {
@@ -41,19 +46,12 @@ export default class App extends React.Component {
     this.emitter.removeAllListeners();
   }
 
-  handleEvent(event) {
-    console.log(event);
-    const { slot } = event;
-    const slots = Object.assign({}, this.state.slots);
-    slots[slot] = event;
-  }
-
   render() {
     const { activeSketch } = this.state;
 
     if (activeSketch) {
       const Sketch = sketches[activeSketch];
-      return <Sketch tidal={osc} />;
+      return <Sketch tidal={this.emitter} />;
     } else {
       return <div />;
     }

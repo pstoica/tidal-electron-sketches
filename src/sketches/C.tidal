@@ -1,0 +1,176 @@
+import Sound.Tidal.OscStream
+
+let beginend bpat durpat = (begin bpat) # (end $ (+) <$> bpat <*> durpat)
+
+let circle = Shape {
+        params = [
+          I "color" (Just 1),
+          F "w" (Just 1),
+          F "x" (Just 0.5),
+          F "y" (Just 0.5),
+          F "r" (Just 0.5),
+          F "begin" (Just 0),
+          F "end" (Just 1),
+          F "life" (Just 1)
+        ],
+        cpsStamp = False,
+        latency = 0
+      }
+    circleSlang = OscSlang {
+        path = "/note",
+        timestamp = NoStamp,
+        namedParams = True,
+        preamble = []
+      }
+    circleStream = do
+      s <- makeConnection "127.0.0.1" 8010 circleSlang
+      stream (Backend s $ (\_ _ _ -> return ())) circle
+    color = makeI circle "color"
+    w = makeF circle "w"
+    x = makeF circle "x"
+    y = makeF circle "y"
+    r = makeF circle "r"
+    begin = makeF circle "begin"
+    end = makeF circle "end"
+    life = makeF circle "life"
+
+c1 <- circleStream
+c2 <- circleStream
+c3 <- circleStream
+c4 <- circleStream
+
+c1 $ silence
+
+c1 $ color "1*12"
+
+color "2*4 3*4 4*4" # w (scale 1 10 $ slow 32 $ sine1) # r (scale 0.1 0.8 $ slow 4 $ tri1)
+
+
+c1 $ stack [
+color "[1 2]*8" # w "5" # r (scale 0.1 0.5 $ slow 4 $ (zoom (0, 0.5) $ tri1)),
+whenmod 8 4 (slow 2) $ color "2*4 3*4 4*4" # w (scale 1 10 $ slow 32 $ tri1) # r (scale 0.1 0.8 $ slow 4 $ tri1),
+color "[1 2 3 4]*3" # w (scale 1 3 $ slow 8 $ tri1) # r (scale 0.5 0.1 $ slow 4 $ tri1) # x (scale 0.4 0.6 $ slow 4 $ sine1) # y (scale 0.4 0.6 $ slow 4 $ sine1) # life "0.5",
+color "[1 2 3 4]*3" # w (scale 1 3 $ slow 8 $ tri1) # r (scale 0.5 0.1 $ slow 4 $ tri1) # x (scale 0.6 0.4 $ slow 4 $ sine1) # y (scale 0.6 0.4 $ slow 4 $ sine1) # life "0.5",
+color "[1 2 3 4]*3" # w (scale 1 3 $ slow 8 $ tri1) # r (scale 0.5 0.1 $ slow 4 $ tri1) # x (scale 0.4 0.6 $ slow 4 $ sine1) # y (scale 0.6 0.4 $ slow 4 $ sine1) # life "0.5",
+color "[1 2 3 4]*3" # w (scale 1 3 $ slow 8 $ tri1) # r (scale 0.5 0.1 $ slow 4 $ tri1) # x (scale 0.6 0.4 $ slow 4 $ sine1) # y (scale 0.4 0.6 $ slow 4 $ sine1) # life "0.5"
+]
+
+
+cps (0.7)
+
+c1 $ stack [
+slow 1 $ sound "x*64"
+|=| color "3 2"
+|=| r (scale 0.0001 0.4 $ slow 2 $ sine1)
+|=| w (scale 0.1 1 $ density 8 $ slow 5.555 $ sine1)
+|=| beginend (scale 0.7 3 $ slow 4.444 $ sine1) (scale 0.1 0.5 $ slow 4.333 $ sine1),
+slow 1 $ sound "x*64"
+|=| color "4 2"
+|=| r (scale 0.0001 0.4 $ slow 2 $ sine1)
+|=| w (scale 0.1 1 $ density 8 $ slow 5.555 $ sine1)
+|=| beginend (scale 0.5 2 $ slow 7.777 $ sine1) (scale 0.1 0.1 $ slow 3.333 $ sine1),
+sound "x*64"
+|=| color "1"
+|=| r (scale 0.0001 0.4 $ slow 2 $ sine1)
+|=| w (scale 0.5 1 $ density 8 $ slow 5.555 $ sine1)
+|=| beginend (scale 0 8 $ slow 13.333 $ sine1) (scale 0.1 0.5 $ slow 16.333 $ sine1)
+] # life "1.5"
+
+c1 $ silence
+
+
+
+
+c1 $ stack [
+sound "x*64"
+|=| x (scale 0.3 0.7 $ slow 8 $ sine1)
+|+| x (scale 0.1 0.2 $ slow 32 $ sine1)
+|=| y (scale 0.3 0.7 $ slow 8 $ rand)
+|=| color "[4 3 2 1]*4"
+|=| r "0.05"
+|=| w (scale 0.5 2 $ slow 4 $ tri1)
+|=| beginend "0.5" "0.5"
+|=| life "1"
+]
+
+c1 $ silence
+
+hush
+
+
+
+
+c1 $ stack [
+sound "x*32"
+|=| x (scale 0.3 0.7 $ slow 16 $ sine1)
+|=| color "[3 2 1]/12"
+|=| r "0.1"
+|=| w (scale 5 10 $ slow 4 $ tri1)
+|=| beginend (scale 0 4 $ slow 4 $ zoom (0.125, 0.25) $ sine1) (scale 0.001 0.1 $ slow 4 $ sine1)
+|=| life "2",
+sound "x*32"
+|=| color "[3 2 1]/9"
+|=| r (scale 0.1 0.7 $ slow 32 $ sine1)
+|=| w (scale 5 10 $ slow 4 $ tri1)
+|=| beginend (scale 0 4 $ slow 4 $ zoom (0.25, 0.5) $ sine1) "0.0001"
+|=| life "2"
+]
+
+c1 $ stack [
+sound "x*32"
+|=| color "[3 2 1]/9"
+|=| r "0.3"
+|=| w (scale 5 10 $ slow 4 $ tri1)
+|=| beginend (scale 0 4 $ slow 4 $ zoom (0.125, 0.25) $ sine1) (scale 0.0001 0.1 $ slow 4 $ sine1)
+|=| life "2",
+sound "x*128"
+|=| color "[3 2 1]/9"
+|=| r (scale 0.1 0.7 $ slow 32 $ sine1)
+|=| w (scale 5 10 $ slow 4 $ tri1)
+|=| beginend (scale 0 4 $ slow 4 $ zoom (0.25, 0.5) $ sine1) "0.0001"
+|=| life "2"
+]
+
+
+
+c1 $ stack [
+color "[1 3]*64"
+|=| y "[0.2 0.4 0.5 0.7 0.8]/4"
+|+| x (scale 0.01 0.1 $ slow 8 $ zoom (0, 0.5) $ sine1)
+|=| x (scale 0.3 0.7 $ slow 8 $ zoom (0, 0.5) $ sine1)
+|=| r "0.3"
+|=| w (scale 5 10 $ slow 4 $ tri1)
+|=| beginend (scale 0 4 $ slow 8 $ zoom (0.0, 0.25) $ sine1) "0.0001"
+|=| life "2",
+color "[1 2]*8"
+|=| y (scale 0.3 0.7 $ slow 8 $ sine1)
+|=| x (scale 0.7 0.3 $ slow 16 $ sine1)
+|=| r (scale 0.5 0.5 $ slow 32 $ sine1)
+|=| w (scale 5 10 $ slow 32 $ sine1)
+|=| beginend (scale 0 0.5 $ slow 4 $ tri1) "0.0001"
+|=| life "8"
+]
+
+
+c1 $ stack [
+color "[1 3]*64"
+|=| x (scale 0.3 0.7 $ slow 8 $ tri1)
+|=| y (scale 0.4 0.6 $ slow 4 $ tri1)
+|=| w (scale 5 10 $ slow 4 $ tri1)
+|=| beginend (scale 0 4 $ slow 8 $ sine1) "0.0001"
+|=| life "2",
+color "[1 2]*8"
+|=| y (scale 0.3 0.7 $ slow 8 $ sine1)
+|=| x (scale 0.7 0.3 $ slow 16 $ sine1)
+|=| r (scale 0.5 0.5 $ slow 32 $ sine1)
+|=| w (scale 5 10 $ slow 32 $ sine1)
+|=| beginend (scale 0 0.5 $ slow 4 $ tri1) "0.0001"
+|=| life "8"
+]
+
+
+c1 $ color "[1 2 3 4]*4" |+| y (scale 0.1 0.4 $ slow 32 $ sine1) # y (scale 0.1 0.8 $ slow 8 $ sine1) # x (scale 0.3 0.7 $ slow 16 $ sine1) # r (scale 0.3 0.4 $ slow 4 $ sine1) # w "10" # beginend (scale 0 0.5 $ slow 4 $ tri1) "0.001" # life "4"
+
+c1 $ color "[1 2]*3" # r (scale 0.3 0.4 $ slow 4 $ sine1) # w "10" # beginend (scale 0 0.5 $ slow 4 $ sine1) "0.01" # life "0.5"
+
+c1 $ silence
